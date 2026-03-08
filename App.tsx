@@ -158,12 +158,13 @@ export default function App() {
   };
 
   const addHomeworkItem = (name: string) => {
-    if (!name.trim()) return;
-    const newItem: HomeworkItem = {
-      id: Date.now().toString(),
-      name: name.trim()
-    };
-    setHomeworkItems(prev => [...prev, newItem]);
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    
+    setHomeworkItems(prev => {
+      if (prev.some(item => item.name === trimmed)) return prev;
+      return [...prev, { id: Date.now().toString(), name: trimmed }];
+    });
   };
 
   const removeHomeworkItem = (id: string) => {
@@ -304,10 +305,23 @@ export default function App() {
                   type="text" 
                   placeholder="輸入新作業名稱"
                   autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      const val = e.currentTarget.value.trim();
+                      if (val) {
+                        addHomeworkItem(val);
+                        setCurrentHomework(val);
+                      } else {
+                        setCurrentHomework(homeworkItems[0]?.name || "");
+                      }
+                    }
+                  }}
                   onBlur={(e) => {
-                    if (e.target.value) {
-                      setCurrentHomework(e.target.value);
-                    } else {
+                    const val = e.target.value.trim();
+                    if (val) {
+                      addHomeworkItem(val);
+                      setCurrentHomework(val);
+                    } else if (currentHomework === "custom") {
                       setCurrentHomework(homeworkItems[0]?.name || "");
                     }
                   }}
